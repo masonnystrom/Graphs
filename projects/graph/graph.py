@@ -1,5 +1,12 @@
 """
 Simple graph implementation
+BFS always finds shortest path
+
+Steps to solve graph prob:
+- translate into graph terminology(vertices, edges, weights)
+- Build the graph
+- traverse your graph (BFS or DFS)
+
 """
 from util import Stack, Queue  # These may come in handy
 from collections import deque
@@ -73,19 +80,14 @@ class Graph:
         This should be done using recursion.
         """
         visited = set()
+        self.dft_recursive_helper(starting_vertex, visited)
 
-        def dft_inner(vertex):
-            if vertex in visited:
-                return
-            else:
-                visited.add(vertex)
-
-            print(vertex)
-
-            for neighbor in self.get_neighbors(vertex):
-                dft_inner(neighbor)
-
-        dft_inner(starting_vertex)
+    def dft_recursive_helper(self, curr_vertex, visited):
+        visited.add(curr_vertex)
+        print(curr_vertex)
+        for neighbor in self.vertices[curr_vertex]:
+            if neighbor not in visited:
+                self.dft_recursive_helper(neighbor, visited)
 
     def bfs(self, starting_vertex, destination_vertex):
         """
@@ -93,17 +95,20 @@ class Graph:
         starting_vertex to destination_vertex in
         breath-first order.
         """
-        queue = deque()
+        queue = Queue()
+        queue.enqueue([starting_vertex])
         visited = set()
-        queue.append(starting_vertex)
-        while len(queue) > 0:
-            currPath = queue.popleft()
+        while queue.size() > 0:
+            currPath = queue.dequeue()
             currNode = currPath[-1]
             if currNode not in visited:
                 visited.add(currNode)
-                print(currNode)
+                if currNode == destination_vertex:
+                    return currPath
                 for neighbor in self.get_neighbors(currNode):
-                    queue.append(neighbor)
+                    path_copy = currPath.copy()
+                    path_copy.append(neighbor)
+                    queue.enqueue(path_copy)
 
     def dfs(self, starting_vertex, destination_vertex):
         """
@@ -127,7 +132,6 @@ class Graph:
                     newPath.append(neighbor)
                     stack.append(newPath)
 
-
     def dfs_recursive(self, starting_vertex, destination_vertex):
         """
         Return a list containing a path from
@@ -137,28 +141,21 @@ class Graph:
         This should be done using recursion.
         """
         visited = set()
+        return self.dfs_recursive_helper([starting_vertex], destination_vertex, visited)
 
-        def dft_inner(path):
-            last_vertex = path[-1]
-
-            if last_vertex is visited:
-                return None
-            else:
-                visited.add(last_vertex)
-            
-            if last_vertex == destination_vertex:
-                return path
-
-            for neighbor in self.get_neighbors(last_vertex):
-                next_path = path.copy()
-                next_path.append(neighbor)
-
-                found = dft_inner(next_path)
-                if found:
-                    return found
-
-            return None
-        return dft_inner([starting_vertex])
+    def dfs_recursive_helper(self, curr_path, destination_vertex, visited):
+        curr_vertex = curr_path[-1]
+        if curr_vertex == destination_vertex:
+            return curr_path
+        visited.add(curr_vertex)
+        for neighbor in self.vertices[curr_vertex]:
+            if neighbor not in visited:
+                newPath = list(curr_path)
+                newPath.append(neighbor)
+                res = self.dfs_recursive_helper(newPath, destination_vertex, visited)
+                if len(res) > 0:
+                    return res
+        return []
 
 if __name__ == '__main__':
     graph = Graph()  # Instantiate your graph
